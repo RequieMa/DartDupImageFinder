@@ -80,3 +80,6 @@ dart pub publish
 4. Add dependencies in pubspec.yaml.
 5. Write tests to ensure your library works correctly.
 6. Optionally, publish your library to pub.dev.
+
+## Reference
+[Dart Package](https://dart.dev/tools/pub/publishing)
