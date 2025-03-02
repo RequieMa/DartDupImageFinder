@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'dart:async';
 import 'dart:typed_data';
 import 'package:image/image.dart' as img;
 import '../../utils/image_utils.dart';
+import '../../utils/general_utils.dart';
 
 class Hashing {
   final List<int> _targetSize = [8, 8];
@@ -33,13 +35,46 @@ class Hashing {
       );
       return _hashFunc(image);
     } on img.ImageException catch (e) {
-      throw UnsupportedError('Image decoding failed: ${e.message}');
+      if (_verbose) 
+        print('Decoding failed: ${e.message}');
+      return null;
     }
-    return null;
   }
 
-  // TODO: Here
-  // void encodeImages(String imageDir)
+  Future<Map<String, String>> encodeImages(String imageDir, 
+    {bool recursive=false, int workers=4,}) async {
+  final files = generateFiles(imageDir, recursive: recursive);
+
+  final hashes = await parallelise(
+    function: encodeImage,
+    data: files,
+    verbose: true,
+    numWorkers: (Platform.numberOfProcessors/2).ceil(),
+  );
+
+//   final pool = WorkerPool(workers, isolateStart: _isolateStart);
+
+//   try {
+//     final results = await Future.wait(
+//       files.map((file) async {
+//         final imageData = await pool.execute(_HashTask(
+//           filePath: file,
+//           targetSize: _targetSize
+//         ));
+//         return imageData != null ? _hashFunc(imageData) : null;
+//       })
+//     );
+//     return Map.fromIterables(files, results);
+//   } finally {
+//     pool.close();
+//   }
+  final relativeNames = generateRelativeNames(imageDir, files);
+  final initialMap = Map<String, String?>.fromIterables(relativeNames, hashes);
+  final hashMap = Map<String, String>.fromEntries(
+    initialMap.entries.where((entry) => entry.value != null)
+  );
+  return hashMap;
+}
 
   // void findDuplicates(encodingMap)
 
@@ -76,8 +111,36 @@ class Hashing {
   }
 }
 
-void _validateHex(String hex) {
-  if (!RegExp(r'^[0-9a-fA-F]+$').hasMatch(hex)) {
-    throw ArgumentError('Invalid hex characters');
-  }
-}
+// static void _isolateStart(SendPort sendPort) {
+//   final channel = Channel<dynamic>.connectSend(sendPort);
+//   channel.register('process_image', (Map<String, dynamic> params) {
+//     // Isolate only handles image loading, actual hashing remains in main thread
+//     final image = loadImage(
+//       params['filePath'],
+//       targetSize: List<int>.from(params['targetSize']),
+//       isGrayscale: true
+//     );
+//     return image; // Return raw pixel data for main thread processing
+//   });
+// }
+
+// void _validateHex(String hex) {
+//   if (!RegExp(r'^[0-9a-fA-F]+$').hasMatch(hex)) {
+//     throw ArgumentError('Invalid hex characters');
+//   }
+// }
+
+
+
+// class _HashTask extends Task<_HashTask, Uint8List?> {
+//   final String filePath;
+//   final List<int> targetSize;
+
+//   _HashTask({required this.filePath, required this.targetSize});
+
+//   @override
+//   Uint8List? execute() => Channel.withIsolatePool('process_image', params: {
+//     'filePath': filePath,
+//     'targetSize': targetSize
+//   });
+// }
