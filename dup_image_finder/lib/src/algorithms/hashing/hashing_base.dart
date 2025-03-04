@@ -1,28 +1,31 @@
 import 'dart:io';
 import 'dart:async';
 import 'dart:typed_data';
+import 'dart:core';
+import 'dart:convert';
 import 'package:image/image.dart' as img;
 import '../../utils/image_utils.dart';
 import '../../utils/general_utils.dart';
+import 'package:path/path.dart' as path;
 
 class Hashing {
-  final List<int> _targetSize = [8, 8];
+  static List<int> targetSize = [8, 8];
   final bool _verbose;
 
   Hashing({bool verbose = true}) : _verbose = verbose;
   
-  /// 生成单张图像的哈希值（仅支持文件路径输入）
-  /// 
-  /// [imageFile] 图像文件路径（必须存在）
-  /// 
-  /// 返回：16字符的十六进制哈希字符串
-  /// 
-  /// 示例：
-  /// ```dart
-  /// final hasher = Hashing();
-  /// final hash = hasher.encodeImage('path/to/image.jpg');
-  /// ```
   String? encodeImage(String imageFile) {
+    /// 生成单张图像的哈希值（仅支持文件路径输入）
+    /// 
+    /// [imageFile] 图像文件路径（必须存在）
+    /// 
+    /// 返回：16字符的十六进制哈希字符串
+    /// 
+    /// 示例：
+    /// ```dart
+    /// final hasher = Hashing();
+    /// final hash = hasher.encodeImage('path/to/image.jpg');
+    /// ```
     if (!File(imageFile).existsSync()) {
       throw ArgumentError('Image file does not exist: $imageFile');
     }
@@ -30,10 +33,10 @@ class Hashing {
     try {
       final image = loadImage(
         imageFile, 
-        targetSize: _targetSize,
+        targetSize: targetSize,
         isGrayscale: true
       );
-      return _hashFunc(image);
+      return hashFunc(image);
     } on img.ImageException catch (e) {
       if (_verbose) 
         print('Decoding failed: ${e.message}');
@@ -41,44 +44,33 @@ class Hashing {
     }
   }
 
-  Future<Map<String, String>> encodeImages(String imageDir, 
-    {bool recursive=false, int workers=4,}) async {
-  final files = generateFiles(imageDir, recursive: recursive);
+  // Future<Map<String, String>> encodeImages(String imageDir, {bool recursive = false, int workers = 4}) async {
+  Map<String, String> encodeImages({required String imageDir, bool recursive = false}) {
+    var directory = Directory(imageDir);
+    if (!directory.existsSync()) {
+      throw ArgumentError('Please provide a valid directory path!');
+    }
 
-  final hashes = await parallelise(
-    function: encodeImage,
-    data: files,
-    verbose: true,
-    numWorkers: (Platform.numberOfProcessors/2).ceil(),
-  );
+    List<String> filePaths = generateFiles(directory, recursive);
 
-//   final pool = WorkerPool(workers, isolateStart: _isolateStart);
+    if (_verbose) 
+      print('Start: Calculating hashes...');
 
-//   try {
-//     final results = await Future.wait(
-//       files.map((file) async {
-//         final imageData = await pool.execute(_HashTask(
-//           filePath: file,
-//           targetSize: _targetSize
-//         ));
-//         return imageData != null ? _hashFunc(imageData) : null;
-//       })
-//     );
-//     return Map.fromIterables(files, results);
-//   } finally {
-//     pool.close();
-//   }
-  final relativeNames = generateRelativeNames(imageDir, files);
-  final initialMap = Map<String, String?>.fromIterables(relativeNames, hashes);
-  final hashMap = Map<String, String>.fromEntries(
-    initialMap.entries.where((entry) => entry.value != null)
-  );
-  return hashMap;
-}
+    // TODO: Make this parallelized
+    // List<String?> hashes = await parallelise(filePaths, workers);
+    Map<String, String> hashMap = new Map();
+    for (var file in filePaths) {
+      var _encode = encodeImage(file);
+      if (_encode != null)
+        hashMap[file] = _encode;
+    }
 
-  // void findDuplicates(encodingMap)
+    if (_verbose) 
+      print('End: Calculating hashes!');
+    return hashMap;
+  }
 
-  String _hashFunc(Uint8List imageArray) {
+  String hashFunc(Uint8List imageArray) {
     final hashVal = hashAlgo(imageArray);
     return Hashing.array2Hash(hashVal);
   }
@@ -109,38 +101,33 @@ class Hashing {
     final xorResult = bigInt1 ^ bigInt2;
     return xorResult.toRadixString(2).replaceAll('0', '').length;
   }
+
+  Map<String, dynamic> findDuplicates({
+    required Map<String, String> encodingMap,
+    int maxDistanceThreshold = 10,
+    bool scores = false,
+    String? outfile,
+    String searchMethod = 'brute_force',
+  }) {
+    print('Start: Evaluating hamming distances for getting duplicates');
+    var results = null; // TODO: implement here `HashEval`
+    print('End: Evaluating hamming distances for getting duplicates');
+
+    if (outfile != null) {
+      _saveResultsToFile(results, outfile);
+    }
+
+    return results;
+  } 
+
+  void _saveResultsToFile(Map<String, dynamic> results, String filename) {
+    File file = File(filename);
+    await file.writeAsString(json.encode(results));
+  }
 }
 
-// static void _isolateStart(SendPort sendPort) {
-//   final channel = Channel<dynamic>.connectSend(sendPort);
-//   channel.register('process_image', (Map<String, dynamic> params) {
-//     // Isolate only handles image loading, actual hashing remains in main thread
-//     final image = loadImage(
-//       params['filePath'],
-//       targetSize: List<int>.from(params['targetSize']),
-//       isGrayscale: true
-//     );
-//     return image; // Return raw pixel data for main thread processing
-//   });
-// }
-
-// void _validateHex(String hex) {
-//   if (!RegExp(r'^[0-9a-fA-F]+$').hasMatch(hex)) {
-//     throw ArgumentError('Invalid hex characters');
-//   }
-// }
-
-
-
-// class _HashTask extends Task<_HashTask, Uint8List?> {
-//   final String filePath;
-//   final List<int> targetSize;
-
-//   _HashTask({required this.filePath, required this.targetSize});
-
-//   @override
-//   Uint8List? execute() => Channel.withIsolatePool('process_image', params: {
-//     'filePath': filePath,
-//     'targetSize': targetSize
-//   });
-// }
+void _validateHex(String hex) {
+  if (!RegExp(r'^[0-9a-fA-F]+$').hasMatch(hex)) {
+    throw ArgumentError('Invalid hex characters');
+  }
+}

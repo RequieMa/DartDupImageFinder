@@ -10,8 +10,6 @@ environment:
 dependencies:
   image: ^4.5.3
   collection: ^1.19.1
-  # worker_pool: ^3.0.0
-  # progress: ^1.9.0
   path: ^1.8.0
 
 dev_dependencies:
