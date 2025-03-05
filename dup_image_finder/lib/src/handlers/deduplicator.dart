@@ -1,37 +1,30 @@
 // 核心去重逻辑
-class ImageDeduplicator {
-  final BKTree _bkTree = BKTree(hammingDistance);
-  final Map<String, String> _hashRegistry = {}; // 文件路径到哈希的映射
-  final int _threshold;
+class HashEval {
+  HashEval({
+    required Map<String, String> test,
+    required Map<String, String> queries,
+    required Function(String, String) distanceFunction,
+    bool verbose = true,
+    int threshold = 5,
+    String searchMethod = 'bktree'
+  }) : _test = test, _queries = queries, _distanceFunction = distanceFunction, _verbose = verbose, _threshold = threshold {
+    _searchMethod = searchMethod == 'bktree' ? _fetchNearestNeighborsBKtree() : _fetchNearestNeighborsBruteForce();
+  };
 
-  ImageDeduplicator({int threshold = 5}) : _threshold = threshold;
-
-  Future<void> addImage(String imagePath) async {
-    final hash = await _computeHash(imagePath);
-    _hashRegistry[imagePath] = hash;
-    _bkTree.insert(hash);
+  void _fetchNearestNeighborsBKtree() {
+    print('Start: Retrieving duplicates using BKTree algorithm');
+    final builtTree = BKTree(_test, _distanceFunction); // TODO: implement BKTree data structure
+    _getQueryResults(builtTree); // TODO: implement
+    print('Start: Retrieving duplicates using BKTree algorithm');
   }
 
-  Future<Map<String, Set<String>>> findDuplicates() async {
-    final duplicates = <String, Set<String>>{};
-    
-    for (final entry in _hashRegistry.entries) {
-      final similarHashes = _bkTree.query(entry.value, _threshold);
-      final similarPaths = similarHashes
-        .expand((h) => _hashRegistry.keys.where((k) => _hashRegistry[k] == h))
-        .toSet();
-      
-      if (similarPaths.length > 1) {
-        duplicates[entry.key] = similarPaths;
-      }
-    }
-    
-    return duplicates;
+  Map<String, dynamic> retrieveResults({bool score = false}) {
+    final results = queryResultsMap();
+    if (score)
+      return results;
+    else
+      return null; // TODO: add return
   }
 
-  Future<String> _computeHash(String imagePath) async {
-    // 实现具体的AHash算法
-    // 使用package:image进行图像处理
-    return await Ahash.compute(imagePath);
-  }
+
 }

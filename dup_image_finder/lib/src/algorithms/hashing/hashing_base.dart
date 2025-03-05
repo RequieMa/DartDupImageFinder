@@ -4,9 +4,10 @@ import 'dart:typed_data';
 import 'dart:core';
 import 'dart:convert';
 import 'package:image/image.dart' as img;
+import 'package:path/path.dart' as path;
 import '../../utils/image_utils.dart';
 import '../../utils/general_utils.dart';
-import 'package:path/path.dart' as path;
+import '../../handlers/deduplicator.dart';
 
 class Hashing {
   static List<int> targetSize = [8, 8];
@@ -110,7 +111,12 @@ class Hashing {
     String searchMethod = 'brute_force',
   }) {
     print('Start: Evaluating hamming distances for getting duplicates');
-    var results = null; // TODO: implement here `HashEval`
+    final resultsSet = HashEval(
+      encodingMap, encodingMap,
+      hammingDistance, _verbose,
+      maxDistanceThreshold, searchMethod
+    );
+    final results = resultsSet.retrieveResults(scores)
     print('End: Evaluating hamming distances for getting duplicates');
 
     if (outfile != null) {
