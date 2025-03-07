@@ -46,7 +46,7 @@ class Hashing {
   }
 
   // Future<Map<String, String>> encodeImages(String imageDir, {bool recursive = false, int workers = 4}) async {
-  Map<String, String> encodeImages({required String imageDir, bool recursive = false}) {
+  Map<String, String> encodeImages(String imageDir, {bool recursive = false}) {
     var directory = Directory(imageDir);
     if (!directory.existsSync()) {
       throw ArgumentError('Please provide a valid directory path!');
@@ -103,33 +103,37 @@ class Hashing {
     return xorResult.toRadixString(2).replaceAll('0', '').length;
   }
 
-  Map<String, dynamic> findDuplicates({
-    required Map<String, String> encodingMap,
+  void findDuplicates(Map<String, String> encodingMap, {
+  // Map<String, dynamic> findDuplicates(Map<String, String> encodingMap, {
     int maxDistanceThreshold = 10,
     bool scores = false,
     String? outfile,
-    String searchMethod = 'brute_force',
+    // String searchMethod = 'brute_force',
+    String searchMethod = 'bktree',
   }) {
     print('Start: Evaluating hamming distances for getting duplicates');
     final resultsSet = HashEval(
-      encodingMap, encodingMap,
-      hammingDistance, _verbose,
-      maxDistanceThreshold, searchMethod
+      test: encodingMap, 
+      queries: encodingMap,
+      distanceFunction: hammingDistance, 
+      verbose: _verbose,
+      threshold: maxDistanceThreshold,
+      searchMethod: searchMethod
     );
-    final results = resultsSet.retrieveResults(scores)
+    // final results = resultsSet.retrieveResults(scores);
     print('End: Evaluating hamming distances for getting duplicates');
 
-    if (outfile != null) {
-      _saveResultsToFile(results, outfile);
-    }
+    // if (outfile != null) {
+    //   _saveResultsToFile(results, outfile);
+    // }
 
-    return results;
+    // return results;
   } 
 
-  void _saveResultsToFile(Map<String, dynamic> results, String filename) {
-    File file = File(filename);
-    await file.writeAsString(json.encode(results));
-  }
+  // void _saveResultsToFile(Map<String, dynamic> results, String filename) {
+  //   File file = File(filename);
+  //   file.writeAsString(json.encode(results));
+  // }
 }
 
 void _validateHex(String hex) {

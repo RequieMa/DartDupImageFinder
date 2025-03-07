@@ -1,59 +1,120 @@
+import 'dart:core';
+import 'dart:typed_data';
+
 class BKTreeNode {
-  final String hash;
-  final Map<int, BKTreeNode> children = {};
-  
-  BKTreeNode(this.hash);
+  final String nodeName;
+  final String nodeValue;
+  final String? parentName;
+  final Map<String, int> children = {};
+
+  BKTreeNode({
+    required this.nodeName,
+    required this.nodeValue,
+    this.parentName,
+  });
 }
 
+typedef Candidate = ({
+  List candList,
+  bool validFlag,
+  Map resDist,
+});
+
 class BKTree {
-  BKTreeNode? _root;
-  final int Function(String, String) distanceFunction;
+  final Map<String, String> _hashDict;
+  final int Function(String, String) _distanceFunction;
+  late final String _root;
+  final List<String> _allKeys;
+  final Map<String, BKTreeNode> _dictAll = {};
+  late final List<String> _candidates;
 
-  BKTree(this.distanceFunction);
-
-  void insert(String hash) {
-    if (_root == null) {
-      _root = BKTreeNode(hash);
-    } else {
-      _insert(_root!, hash);
-    }
+  BKTree(hashDict, distanceFunction) : _hashDict = hashDict, 
+  _distanceFunction = distanceFunction, 
+  _allKeys = hashDict.keys.toList() {
+    _root = _allKeys[0];
+    _allKeys.removeAt(0);
+    _dictAll[_root] = BKTreeNode(nodeName: _root, nodeValue: _hashDict[_root]!);
+    // print(_dictAll);
+    _candidates = [_dictAll[_root]!.nodeName];
+    // print(_candidates);
+    constructTree();
   }
 
-  void _insert(BKTreeNode node, String hash) {
-    final distance = distanceFunction(node.hash, hash);
-    if (distance == 0) return; // 已存在相同哈希
-    
-    if (node.children.containsKey(distance)) {
-      _insert(node.children[distance]!, hash);
-    } else {
-      node.children[distance] = BKTreeNode(hash);
-    }
+  void constructTree() {
+    _allKeys.forEach((var key)=> _insertInTree(key, _root)); 
   }
 
-  Set<String> query(String targetHash, int maxDistance) {
-    final results = <String>{};
-    if (_root == null) return results;
-    
-    final queue = Queue<BKTreeNode>.from([_root!]);
-    
-    while (queue.isNotEmpty) {
-      final node = queue.removeFirst();
-      final currentDistance = distanceFunction(node.hash, targetHash);
-      
-      if (currentDistance <= maxDistance) {
-        results.add(node.hash);
-      }
-      
-      final minRange = currentDistance - maxDistance;
-      final maxRange = currentDistance + maxDistance;
-      
-      node.children.forEach((distance, child) {
-        if (distance >= minRange && distance <= maxRange) {
-          queue.add(child);
+  void search({required String query, int tol = 5}) {
+  // List search({required String query, int tol = 5}) {
+    final validRetrievals = [];
+    final candidatesLocal = List<String>.from(_candidates); 
+    print(validRetrievals);
+    print(candidatesLocal);
+    while (candidatesLocal.isNotEmpty) {
+      final candidateName = candidatesLocal.removeLast();
+      final currentNode = _dictAll[candidateName]!;
+      _getNextCandidates(
+        query: query,
+        candidateObj: currentNode,
+        tolerance: tol,
+      );
+      // final (:candList, :validFlag, :resDist) = _getNextCandidates(
+      //   query: query,
+      //   candidateObj: currentNode,
+      //   tolerance: tol,
+      // );
+
+      // if (validFlag) {
+      //   validRetrievals.add(
+      //     MapEntry(candidateName, resDist.toInt()),
+      //   );
+      // }
+      // candidatesLocal.addAll(candList);
+    }
+    // return validRetrievals;
+  }
+
+  // Candidate _getNextCandidates({
+  void _getNextCandidates({
+    required String query, 
+    required BKTreeNode candidateObj, 
+    required int tolerance
+  }) {
+    final dist = _distanceFunction(candidateObj.nodeValue, query);
+    print(dist);
+    final validFlag = dist <= tolerance ? 1 : 0;
+    print(validFlag);
+    // TODO: Continue from here
+  }
+
+  int _insertInTree(String key, String currentNode) {
+    final distCurrentNode = _distanceFunction(
+      _hashDict[key]!, _dictAll[currentNode]!.nodeValue
+    );
+    final conditionInsertCurrentNodeChild = (
+      _dictAll[currentNode]!.children.entries.isEmpty 
+    ) || (
+      !_dictAll[currentNode]!.children.values.contains(distCurrentNode)
+    );
+
+    if (conditionInsertCurrentNodeChild) {
+      _dictAll[currentNode]!.children[key] = distCurrentNode;
+      _dictAll[key] = BKTreeNode(
+        nodeName: key, nodeValue: _hashDict[key]!, parentName: currentNode
+      );
+    } 
+    else {
+      var nodeToAddTo;
+      for (var entry in _dictAll[currentNode]!.children.entries) {
+        var i = entry.key;
+        var value = entry.value;
+        if (value == distCurrentNode) {
+          nodeToAddTo = i;
+          break;
         }
-      });
+      }
+      _insertInTree(key, nodeToAddTo);
     }
-    
-    return results;
+    return 0;
   }
 }
