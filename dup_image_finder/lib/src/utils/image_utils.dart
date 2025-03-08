@@ -6,7 +6,7 @@ Uint8List loadImage(String imageFile, {
     List<int>? targetSize=null, 
     bool isGrayscale=false, 
 }) {
-  var image = img.decodeImage(File(imageFile)!.readAsBytesSync());
+  var image = img.decodeImage(File(imageFile).readAsBytesSync());
   if (image == null) {
       throw FormatException('Unsupported image format');
   }

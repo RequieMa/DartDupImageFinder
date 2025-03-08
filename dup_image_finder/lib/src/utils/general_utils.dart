@@ -1,11 +1,9 @@
 import 'dart:io';
-import 'dart:async';
-import 'dart:isolate';
 import 'dart:core';
 import 'package:path/path.dart' as path;
 
 List<String> generateFiles(Directory imageDir, bool recursive) {
-  var searchPattern = recursive ? '**/*' : '*';
+  // var searchPattern = recursive ? '**/*' : '*';
   List<FileSystemEntity> files = imageDir.listSync(recursive: recursive).where(
     (entity) => entity is File && !path.basename(entity.path).startsWith('.')
   ).toList();

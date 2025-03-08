@@ -1,13 +1,13 @@
 import 'dart:io';
-import 'dart:async';
 import 'dart:typed_data';
 import 'dart:core';
-import 'dart:convert';
 import 'package:image/image.dart' as img;
-import 'package:path/path.dart' as path;
+import '../../utils/logger.dart';
 import '../../utils/image_utils.dart';
 import '../../utils/general_utils.dart';
 import '../../handlers/deduplicator.dart';
+
+final logger = returnLogger("HashingBase");
 
 class Hashing {
   static List<int> targetSize = [8, 8];
@@ -39,8 +39,9 @@ class Hashing {
       );
       return hashFunc(image);
     } on img.ImageException catch (e) {
-      if (_verbose) 
-        print('Decoding failed: ${e.message}');
+      if (_verbose) {
+        logger.e('Decoding failed: ${e.message}');
+      }
       return null;
     }
   }
@@ -54,20 +55,22 @@ class Hashing {
 
     List<String> filePaths = generateFiles(directory, recursive);
 
-    if (_verbose) 
-      print('Start: Calculating hashes...');
+    if (_verbose) {
+      logger.i('Start: Calculating hashes...');
+    }
 
     // TODO: Make this parallelized
     // List<String?> hashes = await parallelise(filePaths, workers);
-    Map<String, String> hashMap = new Map();
+    final Map<String, String> hashMap = {};
     for (var file in filePaths) {
       var _encode = encodeImage(file);
       if (_encode != null)
         hashMap[file] = _encode;
     }
 
-    if (_verbose) 
-      print('End: Calculating hashes!');
+    if (_verbose) {
+      logger.i('End: Calculating hashes!');
+    }
     return hashMap;
   }
 
@@ -103,15 +106,17 @@ class Hashing {
     return xorResult.toRadixString(2).replaceAll('0', '').length;
   }
 
-  void findDuplicates(Map<String, String> encodingMap, {
-  // Map<String, dynamic> findDuplicates(Map<String, String> encodingMap, {
+  Map<String, dynamic> findDuplicates(Map<String, String> encodingMap, {
     int maxDistanceThreshold = 10,
     bool scores = false,
-    String? outfile,
+    // String? outfile, // TODO: get output json later
     // String searchMethod = 'brute_force',
     String searchMethod = 'bktree',
   }) {
-    print('Start: Evaluating hamming distances for getting duplicates');
+    if (_verbose) {
+      logger.i('Start: Evaluating hamming distances for getting duplicates');
+    }
+    
     final resultsSet = HashEval(
       test: encodingMap, 
       queries: encodingMap,
@@ -120,14 +125,16 @@ class Hashing {
       threshold: maxDistanceThreshold,
       searchMethod: searchMethod
     );
-    // final results = resultsSet.retrieveResults(scores);
-    print('End: Evaluating hamming distances for getting duplicates');
+    final results = resultsSet.retrieveResults(scores: scores);
+
+    if (_verbose) {
+      logger.i('End: Evaluating hamming distances for getting duplicates');
+    }
 
     // if (outfile != null) {
     //   _saveResultsToFile(results, outfile);
     // }
-
-    // return results;
+    return results;
   } 
 
   // void _saveResultsToFile(Map<String, dynamic> results, String filename) {

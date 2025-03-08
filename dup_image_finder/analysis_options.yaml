@@ -17,13 +17,33 @@ include: package:lints/recommended.yaml
 
 linter:
   rules:
-    - camel_case_types
-    - annotate_overrides
-    - always_declare_return_types
+     # 命名规范
+    - camel_case_types           # 类名驼峰式
+    - non_constant_identifier_names # 变量名驼峰式
+    # 代码风格
+    - prefer_const_constructors     # 优先使用 const 构造函数
+    - avoid_print                # 生产环境禁用 print
+    - prefer_final_locals        # 优先使用 final 变量
+    # 文档规范
+    - public_member_api_docs     # 公共 API 必须文档化
+    # 空安全
+    - null_check_on_nullable_type_parameter
+    # 其他关键规则
+    - sort_constructors_first    # 构造函数排序在类顶部
+    - type_init_formals          # 显式初始化类字段类型
 
-# analyzer:
-#   exclude:
-#     - path/to/excluded/files/**
+analyzer:
+  strong-mode:
+    implicit-casts: false    # 禁止隐式类型转换（如 dynamic → int）
+    implicit-dynamic: false  # 禁止隐式 dynamic 类型
+  language:
+    strict-raw-types: true   # 强制泛型类型明确
+  errors:
+    missing_return: error    # 函数缺少返回值报错
+    unused_element: warning  # 未使用的元素警告
+  exclude:
+    - "build/**"          # 忽略构建目录
+    - "lib/generated/**"  # 忽略代码生成文件
 
 # For more information about the core and recommended set of lints, see
 # https://dart.dev/go/core-lints

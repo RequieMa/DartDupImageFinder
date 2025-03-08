@@ -1,5 +1,4 @@
 import 'dart:core';
-import 'dart:typed_data';
 
 class BKTreeNode {
   final String nodeName;
@@ -15,9 +14,9 @@ class BKTreeNode {
 }
 
 typedef Candidate = ({
-  List candList,
+  List<String> candList,
   bool validFlag,
-  Map resDist,
+  int distance,
 });
 
 class BKTree {
@@ -34,9 +33,7 @@ class BKTree {
     _root = _allKeys[0];
     _allKeys.removeAt(0);
     _dictAll[_root] = BKTreeNode(nodeName: _root, nodeValue: _hashDict[_root]!);
-    // print(_dictAll);
     _candidates = [_dictAll[_root]!.nodeName];
-    // print(_candidates);
     constructTree();
   }
 
@@ -44,47 +41,46 @@ class BKTree {
     _allKeys.forEach((var key)=> _insertInTree(key, _root)); 
   }
 
-  void search({required String query, int tol = 5}) {
-  // List search({required String query, int tol = 5}) {
+  // void search({required String query, int tol = 5}) {
+  List<dynamic> search({required String query, int tol = 5}) {
     final validRetrievals = [];
     final candidatesLocal = List<String>.from(_candidates); 
-    print(validRetrievals);
-    print(candidatesLocal);
     while (candidatesLocal.isNotEmpty) {
       final candidateName = candidatesLocal.removeLast();
       final currentNode = _dictAll[candidateName]!;
-      _getNextCandidates(
+      final (:candList, :validFlag, :distance) = _getNextCandidates(
         query: query,
         candidateObj: currentNode,
         tolerance: tol,
       );
-      // final (:candList, :validFlag, :resDist) = _getNextCandidates(
-      //   query: query,
-      //   candidateObj: currentNode,
-      //   tolerance: tol,
-      // );
 
-      // if (validFlag) {
-      //   validRetrievals.add(
-      //     MapEntry(candidateName, resDist.toInt()),
-      //   );
-      // }
-      // candidatesLocal.addAll(candList);
+      if (validFlag) {
+        validRetrievals.add(
+          {candidateName: distance.toInt()},
+        );
+      }
+      candidatesLocal.addAll(candList);
     }
-    // return validRetrievals;
+    return validRetrievals;
   }
 
-  // Candidate _getNextCandidates({
-  void _getNextCandidates({
+  Candidate _getNextCandidates({
     required String query, 
     required BKTreeNode candidateObj, 
     required int tolerance
   }) {
-    final dist = _distanceFunction(candidateObj.nodeValue, query);
-    print(dist);
-    final validFlag = dist <= tolerance ? 1 : 0;
-    print(validFlag);
-    // TODO: Continue from here
+    final distance = _distanceFunction(candidateObj.nodeValue, query);
+    final validity = distance <= tolerance;
+    final searchRangeDistance = [for (var i = distance - tolerance; i < distance + tolerance + 1; ++i) i].toSet();
+    final candidateChildren = candidateObj.children;
+    final candidates = candidateChildren.keys
+        .where((key) => searchRangeDistance.contains(candidateChildren[key]))
+        .toList();
+    return (
+      candList: candidates, 
+      validFlag: validity, 
+      distance: distance, 
+    );
   }
 
   int _insertInTree(String key, String currentNode) {

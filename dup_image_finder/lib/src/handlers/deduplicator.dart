@@ -1,7 +1,8 @@
 // 核心去重逻辑
 import 'dart:core';
-import 'dart:typed_data';
 import '../utils/bk_tree.dart';
+
+final logger = returnLogger("DeDuplicator");
 
 typedef QueryArgs = ({
   String queryKey,
@@ -16,6 +17,7 @@ class HashEval {
   final Function(String, String) _distanceFunction;
   final bool _verbose;
   final int _threshold;
+  final Map<String, List<dynamic>> _queryResultsMap = {};
 
   HashEval({
     required Map<String, String> test,
@@ -31,11 +33,14 @@ class HashEval {
   }
 
   void _fetchNearestNeighborsBKtree() {
-    print('Start: Retrieving duplicates using BKTree algorithm');
+    if (_verbose) {
+      logger.i('Start: Retrieving duplicates using BKTree algorithm');
+    }
     final builtTree = BKTree(_test, _distanceFunction);
-    // print(builtTree);
-    _getQueryResults(builtTree); // TODO: implement
-    print('End: Retrieving duplicates using BKTree algorithm');
+    _getQueryResults(builtTree);
+    if (_verbose) {
+      logger.i('End: Retrieving duplicates using BKTree algorithm');
+    }
   }
 
   void _fetchNearestNeighborsBruteForce() {
@@ -54,28 +59,41 @@ class HashEval {
         threshold: _threshold
       ),
     );
-    print(args);
-    args.forEach((var arg)=> _searcher(arg));  // TODO: to paralellize it
+    // args.forEach((var arg)=> _searcher(arg));  // TODO: to paralellize it
+    for (var i = 0; i < args.length; ++i) {
+      final result =  _searcher(args[i]);
+      final target = queryKeys[i];
+      result.removeWhere((map) => map.containsKey(target));
+      result.sort((a, b) {
+        final aVal = a.values.toList()[0] as Comparable;
+        final bVal = b.values.toList()[0] as Comparable;
+        return aVal.compareTo(bVal);
+      });
+      _queryResultsMap[target] = result;
+    }
   }
 
-  void _searcher(dataTuple) {
-  // List _searcher(dataTuple) {
+  List<dynamic> _searcher(dataTuple) {
     final (:queryKey, :queryVal, :searchMethodObject, :threshold) = dataTuple;
-    // final res = searchMethodObject.search(query: queryVal, tol: threshold);
-    searchMethodObject.search(query: queryVal, tol: threshold);
-    // final filteredRes = res.where((element) {
-    //   return element.isNotEmpty && element[0] != queryKey;
-    // }).toList();
-    // return filteredRes;
+    final res = searchMethodObject.search(query: queryVal, tol: threshold);
+    final filteredRes = res.where((element) => element.isNotEmpty && element[0] != queryKey).toList();
+    return filteredRes;
   }
 
-  // Map<String, dynamic> retrieveResults({bool score = false}) {
-  //   final results = queryResultsMap();
-  //   if (score)
-  //     return results;
-  //   else
-  //     return null; // TODO: add return
-  // }
+  Map<String, List<dynamic>> retrieveResults({bool scores = false}) {
+  // void retrieveResults({bool scores = false}) {
+    if (scores)
+      return _queryResultsMap;
+    else
+      return Map<String, List<dynamic>>.fromEntries(
+        _queryResultsMap.entries.map((entry) {
+          final val = entry.value
+              .map((map) => map.keys.single)
+              .toList();
+          return MapEntry(entry.key, val);
+        })
+      );
+  }
 
 
 }

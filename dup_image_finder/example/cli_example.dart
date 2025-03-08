@@ -8,5 +8,6 @@ void main() async {
   // print(hash);
   final hashMap = hasher.encodeImages("example/example_img/");
   print(hashMap);
-  hasher.findDuplicates(hashMap);
+  final result = hasher.findDuplicates(hashMap);
+  print(result);
 }
