@@ -7,6 +7,7 @@ import '../../utils/image_utils.dart';
 import '../../utils/general_utils.dart';
 import '../../handlers/deduplicator.dart';
 
+
 final logger = returnLogger("HashingBase");
 
 class Hashing {
@@ -40,7 +41,7 @@ class Hashing {
       return hashFunc(image);
     } on img.ImageException catch (e) {
       if (_verbose) {
-        logger.e('Decoding failed: ${e.message}');
+        logger.severe('Decoding failed: ${e.message}');
       }
       return null;
     }
@@ -56,7 +57,7 @@ class Hashing {
     List<String> filePaths = generateFiles(directory, recursive);
 
     if (_verbose) {
-      logger.i('Start: Calculating hashes...');
+      logger.info('Start: Calculating hashes...');
     }
 
     // TODO: Make this parallelized
@@ -69,7 +70,7 @@ class Hashing {
     }
 
     if (_verbose) {
-      logger.i('End: Calculating hashes!');
+      logger.info('End: Calculating hashes!');
     }
     return hashMap;
   }
@@ -114,7 +115,7 @@ class Hashing {
     String searchMethod = 'bktree',
   }) {
     if (_verbose) {
-      logger.i('Start: Evaluating hamming distances for getting duplicates');
+      logger.info('Start: Evaluating hamming distances for getting duplicates');
     }
     
     final resultsSet = HashEval(
@@ -128,7 +129,7 @@ class Hashing {
     final results = resultsSet.retrieveResults(scores: scores);
 
     if (_verbose) {
-      logger.i('End: Evaluating hamming distances for getting duplicates');
+      logger.info('End: Evaluating hamming distances for getting duplicates');
     }
 
     // if (outfile != null) {

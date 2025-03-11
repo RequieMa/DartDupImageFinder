@@ -7,6 +7,7 @@ void main() async {
   // final hash = hasher.encodeImage("example/example_img/gray21.512.tiff");
   // print(hash);
   final hashMap = hasher.encodeImages("example/example_img/");
+  // final hashMap = hasher.encodeImages("test/benchmark/AirbnbData/Test/bathroom");
   print(hashMap);
   final result = hasher.findDuplicates(hashMap);
   print(result);

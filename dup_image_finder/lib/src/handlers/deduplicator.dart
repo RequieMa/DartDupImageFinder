@@ -1,6 +1,6 @@
-// 核心去重逻辑
 import 'dart:core';
 import '../utils/bk_tree.dart';
+import '../utils/logger.dart';
 
 final logger = returnLogger("DeDuplicator");
 
@@ -34,12 +34,12 @@ class HashEval {
 
   void _fetchNearestNeighborsBKtree() {
     if (_verbose) {
-      logger.i('Start: Retrieving duplicates using BKTree algorithm');
+      logger.info('Start: Retrieving duplicates using BKTree algorithm');
     }
     final builtTree = BKTree(_test, _distanceFunction);
     _getQueryResults(builtTree);
     if (_verbose) {
-      logger.i('End: Retrieving duplicates using BKTree algorithm');
+      logger.info('End: Retrieving duplicates using BKTree algorithm');
     }
   }
 

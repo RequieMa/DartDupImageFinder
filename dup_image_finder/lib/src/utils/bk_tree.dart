@@ -1,4 +1,7 @@
 import 'dart:core';
+import '../utils/logger.dart';
+
+final logger = returnLogger("BKTree");
 
 class BKTreeNode {
   final String nodeName;
@@ -26,10 +29,11 @@ class BKTree {
   final List<String> _allKeys;
   final Map<String, BKTreeNode> _dictAll = {};
   late final List<String> _candidates;
+  final bool _verbose;
 
-  BKTree(hashDict, distanceFunction) : _hashDict = hashDict, 
-  _distanceFunction = distanceFunction, 
-  _allKeys = hashDict.keys.toList() {
+  BKTree(hashDict, distanceFunction, {bool verbose = true}) : _hashDict = hashDict, 
+  _distanceFunction = distanceFunction, _allKeys = hashDict.keys.toList(),
+  _verbose = verbose {
     _root = _allKeys[0];
     _allKeys.removeAt(0);
     _dictAll[_root] = BKTreeNode(nodeName: _root, nodeValue: _hashDict[_root]!);
@@ -38,7 +42,14 @@ class BKTree {
   }
 
   void constructTree() {
+    if (_verbose) {
+      logger.info('Start: Construct the BK-Tree');
+    }
     _allKeys.forEach((var key)=> _insertInTree(key, _root)); 
+    if (_verbose) {
+      logger.info(_allKeys);
+      logger.info('End: Construct the BK-Tree');
+    }
   }
 
   // void search({required String query, int tol = 5}) {
