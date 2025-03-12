@@ -62,7 +62,13 @@ This project was conceptually inspired by:
   - Image Color Space
     - Lab
     - HSV
-3. Mean Squared Error (MSE) + Array
+3. Mean Squared Error (MSE) + Array (Threshold < 1000)
+4. Structural Similarity Index (SSIM) + Quad-tree
+5. Fuzzy Matching + BK-tree or Trie
+6. Feature Matching + k-d Tree or FLANN (Fast Library for Approximate Nearest Neighbors)
+ - ORB
+ - SIFT
+7. Deep Learning Methods + Hash Table or ANN (Approximate Nearest Neighbor) Index, like FAISS (Facebook AI Similarity Search)
 
 # Dart Library
 1. Image related
