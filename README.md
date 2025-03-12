@@ -51,3 +51,34 @@ This project was conceptually inspired by:
 - Pure Dart implementation (no Python/C++ dependencies)
 - Optimized for mobile/flutter asset management
 - Implemented perceptual hash with Dart's image package
+
+# Need to implement
+1. Perceptual Hashing + BK-tree
+2. Histogram Comparison + Ball Tree
+  - Histogram Comparison distances
+    - Euclidean Distance - con: Sensitive to changes in lighting and contrast and scale
+    - Chi-square Distance - con: Sensitive to bins with low counts
+    - Bhattacharyya Distance - Effective for measuring distribution overlap and robust to variations but complex to compute
+  - Image Color Space
+    - Lab
+    - HSV
+3. Mean Squared Error (MSE) + Array
+
+# Dart Library
+1. Image related
+  - https://pub.dev/packages/easy_image_viewer 
+  - https://pub.dev/packages/swipe_image_gallery
+  - https://pub.dev/packages/form_builder_image_picker
+  - https://pub.dev/packages/image
+  - https://pub.dev/packages/image_gallery_saver_plus
+  - https://pub.dev/packages/universal_image
+  - https://pub.dev/packages/image_fade
+  - https://pub.dev/packages/image_compare_slider
+  - https://pub.dev/packages/photo_manager
+  - https://pub.dev/packages/fan_carousel_image_slider
+  - https://pub.dev/packages/opencv_dart
+
+2. Others
+  - https://pub.dev/packages/flutter_storage_path
+  - https://pub.dev/packages/animated_introduction
+  - https://pub.dev/packages/image_firework
