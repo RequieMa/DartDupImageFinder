@@ -1,7 +1,7 @@
 import 'dart:core';
 import '../utils/logger.dart';
 
-final logger = returnLogger("BKTree");
+final loggerBKTree = returnLogger("BKTree");
 
 class BKTreeNode {
   final String nodeName;
@@ -43,12 +43,12 @@ class BKTree {
 
   void constructTree() {
     if (_verbose) {
-      logger.info('Start: Construct the BK-Tree');
+      loggerBKTree.info('Start: Construct the BK-Tree');
     }
     _allKeys.forEach((var key)=> _insertInTree(key, _root)); 
     if (_verbose) {
-      logger.info(_allKeys);
-      logger.info('End: Construct the BK-Tree');
+      loggerBKTree.info(_allKeys);
+      loggerBKTree.info('End: Construct the BK-Tree');
     }
   }
 
@@ -124,4 +124,8 @@ class BKTree {
     }
     return 0;
   }
+
+  // For Test
+  String getRoot() => _root;
+  Map<String, BKTreeNode> getDictAll() => _dictAll;
 }
