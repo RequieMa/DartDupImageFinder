@@ -152,6 +152,8 @@ void main() {
   // ...
 }
 ```
+## dHash Algo
+
 
 ## Evaluation
 ```python
@@ -185,6 +187,38 @@ Map<String, dynamic> evaluate({
 
 ## Metrics
 ### Information Retrieval
+--------------------------------
+NDGC: **Normalized Discounted cumulative gain** is often used to measure effectiveness of search engine algorithms and related applications.
+Using a **graded relevance** scale of documents in a search-engine result set, DCG sums the usefulness, or *gain*, of the results discounted by their position in the result list
+
+Two assumptions are made in using DCG and its related measures.
+- Highly relevant documents are more useful when appearing earlier in a search engine result list (have *higher ranks*)
+- Highly relevant documents are more useful than marginally relevant documents, which are in turn more useful than non-relevant documents.
+
+**Relevance** denotes how well a retrieved document or set of documents meets the information need of the user
+
+$$
+nDCG_p = \frac{DCG_p}{IDCG_p}\\
+DCG_p = \sum_{i = 1}^{|REL_p|} \frac{2^{rel_i} - 1}{\log_2 (i + 1)}\\
+IDCG_p = \sum_{i = 1}^{p} \frac{2^{rel_i} - 1}{\log_2 (i + 1)}\\
+$$
+
+$rel_i$ is the graded relevance of the result at position $i$
+
+$p$ is a particular rank position
+
+IDCG is **ideal discounted cumulative gain**
+
+Example in https://en.wikipedia.org/wiki/Discounted_cumulative_gain
+--------------------------------
+Jaccard index: taking the ratio of two sizes (areas or volumes), the intersection size divided by the union size, also called intersection over union (IoU)
+
+$$
+J(A, B) = \frac{|A \cap B|}{|A \cup B|} = \frac{|A \cap B|}{|A| + |B| - |A \cap B|}\\
+$$
+
+Not like the original Python code, it should not be called Jaccard Similarity according to https://en.wikipedia.org/wiki/Jaccard_index
+
 ```dart
 Map<String, dynamic> getAllMetrics(Map<String, List<String>> groundTruth, Map<String, List<String>> retrieved) {
   return {
@@ -195,11 +229,10 @@ Map<String, dynamic> getAllMetrics(Map<String, List<String>> groundTruth, Map<St
 }
 
 double meanMetric(Map<String, List<String>> groundTruth, Map<String, List<String>> retrieved, {required String metric}) {
-  metric = metric.toLowerCase();
   Map<String, Function> metricLookup = {
     'map': avgPrec,
     'ndcg': ndcg,
-    'jaccard': jaccardSimilarity,
+    'jaccard': jaccardIndex,
   };
 
   Function metricFunc = metricLookup[metric]!;
@@ -221,13 +254,11 @@ double avgPrec(List<String> correctDuplicates, List<String> retrievedDuplicates)
     return 0.0;
   }
 
-  int countRealCorrect = correctDuplicates.length;
   List<int> relevance = retrievedDuplicates.map((i) => correctDuplicates.contains(i) ? 1 : 0).toList();
   List<int> relevanceCumsum = List<int>.generate(relevance.length, (i) => relevance.sublist(0, i + 1).reduce((a, b) => a + b));
   List<double> precK = List<double>.generate(relevance.length, (k) => relevanceCumsum[k] / (k + 1));
   List<double> precAndRelevance = List<double>.generate(relevance.length, (k) => relevance[k] * precK[k]);
-  double avgPrecision = precAndRelevance.reduce((a, b) => a + b) / countRealCorrect;
-
+  double avgPrecision = precAndRelevance.reduce((a, b) => a + b) / correctDuplicates.length;
   return avgPrecision;
 }
 
@@ -242,8 +273,8 @@ double ndcg(List<String> correctDuplicates, List<String> retrievedDuplicates) {
 
   double dcg(List<int> rel) {
     List<double> relevanceNumerator = rel.map((k) => pow(2, k) - 1).toList();
-    List<double> relevanceDenominator = List<double>.generate(rel.length, (k) => log(k + 2) / ln2);
-    List<double> dcgTerms = List<double>.generate(rel.length, (k) => relevanceNumerator[k] / relevanceDenominator[k]);
+    List<double> relevanceDenominator = List<double>.generate(rel.length, (i) => log(i + 2) / ln2);
+    List<double> dcgTerms = List<double>.generate(rel.length, (i) => relevanceNumerator[i] / relevanceDenominator[i]);
     double dcgAtK = dcgTerms.reduce((a, b) => a + b);
 
     return dcgAtK;
@@ -260,7 +291,7 @@ double ndcg(List<String> correctDuplicates, List<String> retrievedDuplicates) {
   return dcgK / idcgK;
 }
 
-double jaccardSimilarity(List<String> correctDuplicates, List<String> retrievedDuplicates) {
+double jaccardIndex(List<String> correctDuplicates, List<String> retrievedDuplicates) {
   if (retrievedDuplicates.isEmpty && correctDuplicates.isEmpty) {
     return 1.0;
   }
@@ -279,4 +310,129 @@ double jaccardSimilarity(List<String> correctDuplicates, List<String> retrievedD
   return jaccSim;
 }
 ```
+
 ### Classification
+```dart 
+import 'dart:collection';
+import 'package:ml_metrics/ml_metrics.dart';
+
+Map<String, dynamic> classificationMetrics(
+    Map<String, List<String>> groundTruth, 
+    Map<String, List<String>> retrieved
+) {
+  var allPairs = makeAllUniquePossiblePairs(groundTruth);
+  var positivePairs = makePositiveDuplicatePairs(groundTruth, retrieved);
+  var groundTruthPairs = positivePairs[0];
+  var retrievedPairs = positivePairs[1];
+
+  var labels = prepareLabels(allPairs, groundTruthPairs, retrievedPairs);
+  var yTrue = labels[0];
+  var yPred = labels[1];
+
+  var metrics = metricScore(yTrue, yPred);
+  return metrics;
+}
+
+List<List<String>> makeAllUniquePossiblePairs(Map<String, List<String>> groundTruthDict) {
+  var allFiles = groundTruthDict.keys.toList();
+  final List<List<String>> allTuples = [];
+
+  for (var i in allFiles) {
+    for (var j in allFiles) {
+      if (i != j) {
+        allTuples.add([i, j]);
+      }
+    }
+  }
+
+  return getUniqueOrderedTuples(allTuples);
+}
+
+List<List<T>> getUniqueOrderedTuples<T>(List<List<T>> uniqueTuples) {
+  final Set<List<T>> uniqueSet = {};
+  for (var tuple in uniqueTuples) {
+    var sortedTuple = List<T>.from(tuple)..sort();
+    uniqueSet.add(sortedTuple);
+  }
+  return uniqueSet.toList();
+}
+
+List<List<List<String>>> makePositiveDuplicatePairs(
+    Map<String, List<String>> groundTruth, 
+    Map<String, List<String>> retrieved
+) {
+  final List<List<List<String>>> pairs = [];
+
+  for (var mapping in [groundTruth, retrieved]) {
+    final List<<List<String>>> validPairs = [];
+
+    for (var entry in mapping.entries) {
+      final k = entry.key;
+      final v = entry.value;
+      validPairs.addAll(v.map((e) => [k, e]));
+    }
+    pairs.add(getUniqueOrderedTuples(validPairs));
+  }
+
+  return pairs;
+}
+
+List<List<int>> prepareLabels(
+    List<List<String>> completePairs, 
+    List<List<String>> groundTruthPairs, 
+    List<List<String>> retrievedPairs
+) {
+  var groundTruthSet = groundTruthPairs.map((e) => e.toSet()).toSet();
+  var retrievedSet = retrievedPairs.map((e) => e.toSet()).toSet();
+
+  var yTrue = completePairs.map((pair) => groundTruthSet.contains(pair.toSet()) ? 1 : 0).toList();
+  var yPred = completePairs.map((pair) => retrievedSet.contains(pair.toSet()) ? 1 : 0).toList();
+
+  return [yTrue, yPred];
+}
+
+Map<String, List<double>> metricScore(List<int> yTrue, List<int> yPred) {
+  int truePositiveClass1 = 0;
+  int falsePositiveClass1 = 0;
+  int falseNegativeClass1 = 0;
+
+  int truePositiveClass0 = 0;
+  int falsePositiveClass0 = 0;
+  int falseNegativeClass0 = 0;
+
+  for (int i = 0; i < yTrue.length; i++) {
+    if (yPred[i] == 1) {
+      if (yTrue[i] == 1) {
+        truePositiveClass1++;
+      } else {
+        falsePositiveClass1++;
+      }
+    } else {
+      if (yTrue[i] == 1) {
+        falseNegativeClass1++;
+      } else {
+        truePositiveClass0++;
+      }
+    }
+  }
+
+  double precisionClass1 = truePositiveClass1 / (truePositiveClass1 + falsePositiveClass1);
+  double recallClass1 = truePositiveClass1 / (truePositiveClass1 + falseNegativeClass1);
+  double f1Class1 = 2 * (precisionClass1 * recallClass1) / (precisionClass1 + recallClass1);
+
+  double precisionClass0 = truePositiveClass0 / (truePositiveClass0 + falsePositiveClass0);
+  double recallClass0 = truePositiveClass0 / (truePositiveClass0 + falseNegativeClass0);
+  double f1Class0 = 2 * (precisionClass0 * recallClass0) / (precisionClass0 + recallClass0);
+
+  return {
+    'precision': [precisionClass0, precisionClass1],
+    'recall': [recallClass0, recallClass1],
+    'f1_score': [f1Class0, f1Class1],
+    'support': [truePositiveClass0 + falseNegativeClass0, truePositiveClass1 + falseNegativeClass1],
+  };
+}
+```
+
+class-0 refers to non-duplicate image pairs.
+
+class-1 refers to duplicate image pairs.
