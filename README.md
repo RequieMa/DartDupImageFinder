@@ -88,3 +88,4 @@ This project was conceptually inspired by:
   - https://pub.dev/packages/flutter_storage_path
   - https://pub.dev/packages/animated_introduction
   - https://pub.dev/packages/image_firework
+  - https://pub.dev/packages/lakos
