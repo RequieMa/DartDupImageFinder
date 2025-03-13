@@ -425,6 +425,78 @@ void main() async {
 }
 ```
 
+### Find dup (unchecked)
+```dart
+import 'dart:convert';
+import 'dart:io';
+import 'package:vector_math/vector_math.dart';
+
+Map<String, dynamic> findDuplicatesDict(
+    Map<String, List<double>> encodingMap,
+    double minSimilarityThreshold,
+    bool scores,
+    {String? outfile,
+    int numSimWorkers = 1}) {
+  // Get all image ids
+  List<String> imageIds = encodingMap.keys.toList();
+
+  // Put image encodings into feature matrix
+  List<List<double>> features = encodingMap.values.toList();
+
+  print("Start: Calculating cosine similarities...");
+
+  // Calculate cosine similarities
+  List<List<double>> cosineScores = getCosineSimilarity(features);
+
+ 2.0 to ignore self-similarity
+  for (int i = 0; i < cosineScores.length; i++) {
+    cosineScores[i][i] = 2.0;
+  }
+
+  print("End: Calculating cosine similarities.");
+
+  Map<String, dynamic> results = {};
+  for (int i = 0; i < cosineScores.length; i++) {
+    List<double> j = cosineScores[i];
+    List<bool> duplicatesBool = j.map((score) => score >= minSimilarityThreshold && score < 2).toList();
+
+    if (scores) {
+      List<MapEntry<String, double>> tmp = List.generate(imageIds.length, (index) => MapEntry(imageIds[index], j[index]));
+      List<MapEntry<String, double>> duplicates = tmp.where((entry) => duplicatesBool[tmp.indexOf(entry)]).toList();
+      results[imageIds[i]] = duplicates;
+    } else {
+      List<String> duplicates = List.generate(imageIds.length, (index) => imageIds[index]).where((id) => duplicatesBool[imageIds.indexOf(id)]).toList();
+      results[imageIds[i]] = duplicates;
+    }
+  }
+
+  if (outfile != null) {
+    saveJson(results, outfile, scores);
+  }
+
+  return results;
+}
+
+List<List<double>> getCosineSimilarity(List<List<double>> features) {
+  int n = features.length;
+  List<List<double>> cosineScores = List.generate(n, (_) => List.filled(n, 0.0));
+
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < n; j++) {
+      cosineScores[i][j] = dot(Vector.fromList(features[i]), Vector.fromList(features[j])) /
+          (features[i].length * features[j].length);
+    }
+  }
+
+  return cosineScores;
+}
+
+void saveJson(Map<String, dynamic> results, String filename, bool floatScores) {
+  File file = File(filename);
+  file.writeAsStringSync(jsonEncode(results));
+}
+```
+
 ## Evaluation
 ```python
 def evaluate(
