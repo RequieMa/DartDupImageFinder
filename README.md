@@ -89,3 +89,7 @@ This project was conceptually inspired by:
   - https://pub.dev/packages/animated_introduction
   - https://pub.dev/packages/image_firework
   - https://pub.dev/packages/lakos
+  - https://pub.dev/packages/onnxruntime
+
+3. Wavelet (Currently not available with Dart and OpenCV)
+  - https://stackoverflow.com/questions/24536552/how-to-combine-pywavelet-and-opencv-for-image-processing

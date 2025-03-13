@@ -153,7 +153,277 @@ void main() {
 }
 ```
 ## dHash Algo
+```dart
+List<bool> hashAlgo(Uint8List imageData) {
+  // Decode the image using OpenCV
+  var image = cv.imdecode(imageData, cv.IMREAD_GRAYSCALE);
 
+  // Get the image dimensions
+  int height = image.rows;
+  int width = image.cols;
+
+  // Slice the image to get the required parts
+  var imageLeft = image.colRange(0, width - 1);
+  var imageRight = image.colRange(1, width);
+
+  // Perform the comparison
+  var hashMat = imageRight > imageLeft;
+
+  // Convert the result to a list of booleans
+  List<bool> hashList = [];
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width - 1; x++) {
+      hashList.add(hashMat.at(y, x) != 0);
+    }
+  }
+
+  return hashList;
+}
+```
+
+## ML Models
+### Export pytorch model to ONNX
+```python
+import torch
+import torchvision.models as models
+
+class MobilenetV3(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        mobilenet = models.mobilenet_v3_small(weights='MobileNet_V3_Small_Weights.IMAGENET1K_V1').eval()
+        self.mobilenet_gap_op = torch.nn.Sequential(
+            mobilenet.features, mobilenet.avgpool
+        )
+
+    def forward(self, x) -> torch.tensor:
+        x = self.mobilenet_gap_op(x)
+        x = x.squeeze(dim=3).squeeze(dim=2)
+        return x
+
+# Instantiate the model
+model = MobilenetV3()
+
+# Create dummy input
+dummy_input = torch.randn(1, 3, 224, 224)
+
+# Export the model
+torch.onnx.export(model, dummy_input, "mobilenet_v3_small.onnx", opset_version=11)
+```
+
+Run ONNX model with Dart
+```dart
+import 'package:onnxruntime/onnxruntime.dart';
+
+void main() async {
+  // Initialize the ONNX Runtime environment
+  OrtEnv.instance.init();
+
+  // Load the ONNX model
+  final sessionOptions = OrtSessionOptions();
+  final session = await OrtSession.create('assets/mobilenet_v3_small.onnx', sessionOptions);
+
+  // Prepare input data (dummy data for example)
+  final input = List.filled(1 * 3 * 224 * 224, 1.0); // Example input
+  final inputShape = [1, 3, 224, 224];
+  final inputTensor = OrtValueTensor.createTensorWithDataList(input, inputShape);
+
+  // Run inference
+  final outputs = await session.run({'input': inputTensor});
+
+  // Print the output
+  print('Output: $outputs');
+
+  // Clean up
+  inputTensor.release();
+  session.close();
+  OrtEnv.instance.release();
+}
+```
+
+### publish without models
+```cmd
+├── lib
+│   ├── my_library.dart
+│   └── other_files.dart
+├── example
+│   ├── example.dart
+│   └── assets
+│       └── mobilenet_v3_small.onnx
+├── pubspec.yaml
+```
+
+in `pubspec.yaml`
+```yaml
+flutter:
+  assets:
+    - example/assets/mobilenet_v3_small.onnx
+```
+
+### Convert
+```dart
+class CustomModel {
+  final String modelPath;
+  final String transform;
+  final String name;
+
+  CustomModel({required this.modelPath, required this.transform, required this.name});
+}
+```
+
+**CNN**
+```dart
+import 'package:onnxruntime/onnxruntime.dart';
+import 'package:logging/logging.dart';
+
+class CNN {
+  final bool verbose;
+  final CustomModel modelConfig;
+  late OrtSession session;
+  final Logger logger = Logger('CNN');
+  final int batchSize = 64;
+  late String device;
+
+  CNN({this.verbose = true, required this.modelConfig}) {
+    _setDevice();
+    _loadModel();
+    logger.info('Initialized: ${modelConfig.name} for feature extraction ..');
+  }
+
+  void _setDevice() {
+    // Dart doesn't have direct support for CUDA, so we'll assume CPU for now
+    device = 'cpu';
+    logger.info('Device set to $device ..');
+  }
+
+  Future<void> _loadModel() async {
+    session = await OrtSession.create(modelConfig.modelPath);
+  }
+
+  // Add other methods as needed
+}
+```
+
+Usage
+```dart
+void main() async {
+  final modelConfig = CustomModel(
+    modelPath: 'assets/models/mobilenet_v3_small.onnx',
+    transform: 'mobilenet_v3_transform', // Define your transform logic
+    name: 'mobilenet_v3_small',
+  );
+
+  final cnn = CNN(modelConfig: modelConfig);
+
+  // Add code to run inference, etc.
+}
+```
+
+encode_image
+```dart
+Future<List<double>> getCnnFeaturesSingle(String imagePath) async {
+  // Preprocess the image
+  final imageData = preprocessImage(imagePath);
+  
+  // Load the ONNX model
+  final session = await OrtSession.create('assets/models/mobilenet_v3_small.onnx');
+  
+  // Prepare input tensor
+  final inputTensor = OrtValueTensor.createTensorWithDataList(imageData, [1, 3, 224, 224]);
+  
+  // Run inference
+  final outputs = await session.run({'input': inputTensor});
+  
+  // Extract features from the output tensor
+  final imgFeaturesTensor = outputs[0].data as List<double>;
+  
+  // Clean up
+  inputTensor.release();
+  session.close();
+  
+  return imgFeaturesTensor;
+}
+```
+
+For encode images, we need DataSet and DataLoader
+```dart
+import 'dart:io';
+import 'package:image/image.dart';
+
+class ImgDataset {
+  final String imageDir;
+  final Function(List<int>) basenetPreprocess;
+  final bool recursive;
+  late List<File> imageFiles;
+
+  ImgDataset({
+    required this.imageDir,
+    required this.basenetPreprocess,
+    this.recursive = false,
+  }) {
+    imageFiles = _generateFiles(Directory(imageDir), recursive);
+  }
+
+  int get length => imageFiles.length;
+
+  Map<String, dynamic> getItem(int index) {
+    final imageFile = imageFiles[index];
+    final imageBytes = File(imageFile.path).readAsBytesSync();
+    final image = decodeImage(imageBytes);
+    if (image != null) {
+      final processedImage = basenetPreprocess(imageBytes);
+      return {'image': processedImage, 'filename': imageFile.path};
+    } else {
+      return {'image': null, 'filename': imageFile.path};
+    }
+  }
+
+  List<File> _generateFiles(Directory dir, bool recursive) {
+    return dir
+        .listSync(recursive: recursive)
+        .whereType<File>()
+        .where((file) => !file.path.startsWith('.'))
+        .toList();
+  }
+}
+
+class DataLoader {
+  final ImgDataset dataset;
+  final int batchSize;
+
+  DataLoader({required this.dataset, this.batchSize = 1});
+
+  Stream<List<Map<String, dynamic>>> loadBatch() async* {
+    for (int i = 0; i < dataset.length; i += batchSize) {
+      final batch = <Map<String, dynamic>>[];
+      for (int j = i; j < i + batchSize && j < dataset.length; j++) {
+        batch.add(dataset.getItem(j));
+      }
+      yield batch;
+    }
+  }
+}
+```
+
+Usage
+```dart
+void main() async {
+  final dataset = ImgDataset(
+    imageDir: 'path/to/images',
+    basenetPreprocess: (imageBytes) {
+      // Implement your preprocessing logic here
+      return imageBytes;
+    },
+  );
+
+  final dataLoader = DataLoader(dataset: dataset, batchSize: 64);
+
+  await for (final batch in dataLoader.loadBatch()) {
+    for (final item in batch) {
+      print('Filename: ${item['filename']}, Image: ${item['image']}');
+    }
+  }
+}
+```
 
 ## Evaluation
 ```python
