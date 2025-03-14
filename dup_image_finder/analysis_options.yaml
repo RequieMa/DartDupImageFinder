@@ -55,6 +55,31 @@ linter:
     - empty_constructor_bodies      # DO use `;` instead of `{}` for empty constructor bodies
     - unnecessary_new               # DON'T use `new`
     - unnecessary_const             # DON'T use `const` redundantly
+    - avoid_catches_without_on_clauses # AVOID catches without `on` clauses
+    - avoid_catching_errors         # DON'T explicitly catch `Error` or types that implement it
+    - use_rethrow_when_possible     # DO use `rethrow` to rethrow a caught exception
+    - use_to_and_as_if_applicable   # PREFER naming a method `to___()` if it copies the object's state to a new object
+                                    #   `as___()` if it returns a different representation backed by the original object
+    - one_member_abstracts          # AVOID defining a one-member abstract class when a simple function will do
+    - avoid_classes_with_only_static_members # AVOID defining a class that contains only static members
+    - prefer_mixin                  # PREFER defining a pure `mixin` or pure `class` to a `mixin class`
+    - prefer_final_fields           # PREFER making fields and top-level variables `final`
+    - use_setters_to_change_properties # DO use setters for operations that conceptually change properties
+    - avoid_setters_without_getters # DON'T define a setter without a corresponding getter
+    - avoid_returning_this          # AVOID returning `this` from methods just to enable a fluent interface
+    - prefer_typing_uninitialized_variables # DO type annotate variables without initializers
+    - type_annotate_public_apis     # DO type annotate fields and top-level variables if the type isn't obvious
+    - omit_local_variable_types     # DON'T redundantly type annotate initialized local variables
+    - avoid_types_on_closure_parameters # DON'T annotate inferred parameter types on function expressions
+    - type_init_formals             # DON'T type annotate initializing formals
+    - avoid_return_types_on_setters # DON'T specify a return type for a setter
+    - prefer_generic_function_type_aliases # DON'T use the legacy typedef syntax
+    - avoid_private_typedef_functions # PREFER inline function types over typedefs
+    - use_function_type_syntax_for_parameters # PREFER using function type syntax for parameters
+    - avoid_positional_boolean_parameters # AVOID positional boolean parameters
+    - hash_and_equals               # DO override `hashCode` if you override `==`
+    - avoid_equals_and_hash_code_on_mutable_classes # AVOID defining custom equality for mutable classes
+    - avoid_null_checks_in_equality_operators # DON'T make the parameter to `==` nullable
 
 analyzer:
   strong-mode:
