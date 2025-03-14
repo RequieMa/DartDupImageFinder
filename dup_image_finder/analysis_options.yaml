@@ -13,24 +13,48 @@
 
 include: package:lints/recommended.yaml
 
-# Uncomment the following section to specify additional rules.
-
 linter:
   rules:
-     # 命名规范
-    - camel_case_types           # 类名驼峰式
-    - non_constant_identifier_names # 变量名驼峰式
-    # 代码风格
-    - prefer_const_constructors     # 优先使用 const 构造函数
-    - avoid_print                # 生产环境禁用 print
-    - prefer_final_locals        # 优先使用 final 变量
-    # 文档规范
-    - public_member_api_docs     # 公共 API 必须文档化
-    # 空安全
-    - null_check_on_nullable_type_parameter
-    # 其他关键规则
-    - sort_constructors_first    # 构造函数排序在类顶部
-    - type_init_formals          # 显式初始化类字段类型
+     # Identifier
+    - camel_case_types              # DO name types using UpperCamelCase
+    - camel_case_extensions         # DO name extensions using UpperCamelCase
+    - file_names                    # DO name packages, directories, and source files using lowercase_with_underscores
+    - package_names
+    - library_prefixes              # DO name import prefixes using lowercase_with_underscores
+    - non_constant_identifier_names # DO name other identifiers using lowerCamelCase
+    - constant_identifier_names     # PREFER using lowerCamelCase for constant names
+    - no_wildcard_variable_uses     # DON'T use wildcard parameters or variables.
+    - unnecessary_underscores       # AVOID using multiple underscores when a single wildcard will do.
+    - directives_ordering           # DO place dart: > package: > alphabetically > specify exports
+    # DO format your code using `dart format`
+    - lines_longer_than_80_chars    # AVOID lines longer than 80 characters
+    - curly_braces_in_flow_control_structures # DO use curly braces for all flow control statements
+    # Doc comments are especially handy because `dart doc` parses them and generates doc pages
+    - slash_for_doc_comments
+    - comment_references            # DO reference only in-scope identifiers in doc comments.
+    # Usage
+    - use_string_in_part_of_directives # DO use strings in `part of` directives
+    - implementation_imports        # DON'T import libraries that are inside the `src` directory of another package
+    - avoid_relative_lib_imports    # DON'T allow an import path to reach into or out of `lib`
+    - prefer_relative_imports       # PREFER relative import paths
+    - avoid_init_to_null            # DON'T explicitly initialize variables to `null`, or use as default value
+    - prefer_adjacent_string_concatenation # DO use adjacent strings to concatenate string literals
+    - prefer_interpolation_to_compose_strings # PREFER using interpolation to compose strings and values
+    - unnecessary_brace_in_string_interps # AVOID using curly braces in interpolation when not needed
+    - prefer_collection_literals    # DO use collection literals when possible
+    - prefer_is_empty               # DON'T use `.length` to see if a collection is empty
+    - prefer_is_not_empty
+    - avoid_function_literals_in_foreach_calls # AVOID using `Iterable.forEach()` with a function literal
+    - prefer_iterable_whereType     # DO use `whereType()` to filter a collection by type
+    - prefer_function_declarations_over_variables # DO use a function declaration to bind a function to a name
+    - unnecessary_lambdas           # DON'T create a lambda when a tear-off will do
+    - unnecessary_getters_setters   # DON'T wrap a field in a getter and setter unnecessarily
+    - prefer_expression_function_bodies # CONSIDER using `=>` for simple members
+    - unnecessary_this              # DON'T use `this.` except to redirect to a named constructor or to avoid shadowing
+    - prefer_initializing_formals   # DO use initializing formals when possible
+    - empty_constructor_bodies      # DO use `;` instead of `{}` for empty constructor bodies
+    - unnecessary_new               # DON'T use `new`
+    - unnecessary_const             # DON'T use `const` redundantly
 
 analyzer:
   strong-mode:
@@ -45,8 +69,3 @@ analyzer:
     - "build/**"          # 忽略构建目录
     - "lib/generated/**"  # 忽略代码生成文件
 
-# For more information about the core and recommended set of lints, see
-# https://dart.dev/go/core-lints
-
-# For additional information about configuring this file, see
-# https://dart.dev/guides/language/analysis-options
