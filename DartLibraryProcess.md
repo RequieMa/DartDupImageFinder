@@ -97,3 +97,5 @@ Update Remote URL: After renaming, update the remote URL in your local Git confi
 ```cmd
 git remote set-url origin https://github.com/yourusername/new-repo-name.git
 ```
+
+Change License to The 3-Clause BSD License
