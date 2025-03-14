@@ -83,3 +83,17 @@ dart pub publish
 
 ## Reference
 [Dart Package](https://dart.dev/tools/pub/publishing)
+
+
+# Steps to Rename Your Git Repository
+Rename Repository: On GitHub, you can rename your repository directly from the repository settings.
+Update Remote URL: After renaming, update the remote URL in your local Git configuration.
+## Example Commands
+1. Rename Repository on GitHub:
+- Go to your repository on GitHub.
+- Click on "Settings".
+- Change the repository name to match your library name.
+2. Update Remote URL Locally:
+```cmd
+git remote set-url origin https://github.com/yourusername/new-repo-name.git
+```
