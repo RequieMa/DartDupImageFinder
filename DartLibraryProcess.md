@@ -98,4 +98,50 @@ Update Remote URL: After renaming, update the remote URL in your local Git confi
 git remote set-url origin https://github.com/yourusername/new-repo-name.git
 ```
 
-Change License to The 3-Clause BSD License
+## Need to implement
+Also, I want to explore other vision methods to find duplicate images
+
+1. Perceptual Hashing + BK-tree
+2. Histogram Comparison + Ball Tree
+  - Histogram Comparison distances
+    - Euclidean Distance - con: Sensitive to changes in lighting and contrast and scale
+    - Chi-square Distance - con: Sensitive to bins with low counts
+    - Bhattacharyya Distance - Effective for measuring distribution overlap and robust to variations but complex to compute
+  - Image Color Space
+    - Lab
+    - HSV
+3. Mean Squared Error (MSE) + Array (Threshold < 1000)
+4. Structural Similarity Index (SSIM) + Quad-tree
+5. Fuzzy Matching + BK-tree or Trie
+6. Feature Matching + k-d Tree or FLANN (Fast Library for Approximate Nearest Neighbors)
+ - ORB
+ - SIFT
+7. Deep Learning Methods + Hash Table or ANN (Approximate Nearest Neighbor) Index, like FAISS (Facebook AI Similarity Search)
+
+##  Dart Library
+1. Image related
+  - https://pub.dev/packages/easy_image_viewer 
+  - https://pub.dev/packages/swipe_image_gallery
+  - https://pub.dev/packages/form_builder_image_picker
+  - https://pub.dev/packages/image
+  - https://pub.dev/packages/image_gallery_saver_plus
+  - https://pub.dev/packages/universal_image
+  - https://pub.dev/packages/image_fade
+  - https://pub.dev/packages/image_compare_slider
+  - https://pub.dev/packages/photo_manager
+  - https://pub.dev/packages/fan_carousel_image_slider
+  - https://pub.dev/packages/opencv_dart
+
+2. Others
+  - https://pub.dev/packages/flutter_storage_path
+  - https://pub.dev/packages/animated_introduction
+  - https://pub.dev/packages/image_firework
+  - https://pub.dev/packages/lakos
+  - https://pub.dev/packages/onnxruntime
+
+3. Wavelet (Currently not available with Dart and OpenCV)
+  - https://stackoverflow.com/questions/24536552/how-to-combine-pywavelet-and-opencv-for-image-processing
+
+# Benchmark using part of
+https://www.kaggle.com/datasets/barelydedicated/airbnb-duplicate-image-detection/code 
+

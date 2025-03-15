@@ -1,16 +1,3 @@
-# This file configures the static analysis results for your project (errors,
-# warnings, and lints).
-#
-# This enables the 'recommended' set of lints from `package:lints`.
-# This set helps identify many issues that may lead to problems when running
-# or consuming Dart code, and enforces writing Dart using a single, idiomatic
-# style and format.
-#
-# If you want a smaller set of lints you can change this to specify
-# 'package:lints/core.yaml'. These are just the most critical lints
-# (the recommended set includes the core lints).
-# The core lints are also what is used by pub.dev for scoring packages.
-
 include: package:lints/recommended.yaml
 
 linter:
@@ -80,6 +67,11 @@ linter:
     - hash_and_equals               # DO override `hashCode` if you override `==`
     - avoid_equals_and_hash_code_on_mutable_classes # AVOID defining custom equality for mutable classes
     - avoid_null_checks_in_equality_operators # DON'T make the parameter to `==` nullable
+    - require_trailing_commas      # 提升git diff清晰度
+    - prefer_double_quotes         # 统一字符串引号风格 
+    - null_check_on_nullable_type_parameter # 更严格的空安全
+    - unnecessary_null_checks      # 消除冗余空检查
+    - public_member_api_docs
 
 analyzer:
   strong-mode:
