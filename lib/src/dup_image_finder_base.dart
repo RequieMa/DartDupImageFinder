@@ -72,12 +72,20 @@ class DupImageFinder {
       loggerHash.info('Start: Evaluating hamming distances for getting duplicates');
     }
 
-    
+    if (_hasher is DHash) {
+      final hammingWrapper = (String a, String b) {
+        hammingDistance(a, b, bitCount: 128);
+      };
+    } else {
+      final hammingWrapper = (String a, String b) {
+        hammingDistance(a, b, bitCount: 64);
+      };
+    }
     
     final resultsSet = HashEval(
       test: encodingMap, 
       queries: encodingMap,
-      distanceFunction: hammingDistance, 
+      distanceFunction: hammingWrapper, 
       verbose: _verbose,
       threshold: maxDistanceThreshold,
       searchMethod: searchMethod

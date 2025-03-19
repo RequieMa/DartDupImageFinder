@@ -29,10 +29,10 @@ class HashEval {
     String searchMethod = 'bktree',
     int bitCount = 64,
   }) : _test = test, _queries = queries, 
+  _distanceFunction = distanceFunction,
   _verbose = verbose, _threshold = threshold,
   _bitCount = bitCount {
     searchMethod == 'bktree' ? _fetchNearestNeighborsBKtree() : _fetchNearestNeighborsBruteForce();
-    _distanceFunction = distanceFunction(),
   }
 
   void _fetchNearestNeighborsBKtree() {
