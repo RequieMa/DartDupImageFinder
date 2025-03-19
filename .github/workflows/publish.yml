@@ -1,0 +1,65 @@
+name: Publish to pub.dev
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
+
+jobs:
+  quality-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - run: dart pub get
+
+      - name: Format check
+        run: dart format --output=none --set-exit-if-changed .
+        
+      - name: Static analysis
+        run: dart analyze
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run tests
+        run: |
+          dart pub global activate junitreport
+          mkdir -p test-results
+          dart test --reporter json > test-results/results.json
+          dart pub global run junitreport:tojunit --input test-results/results.json  --output test-results/results.xml
+        continue-on-error: false
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results/results.xml
+
+      - name: Generate docs
+        run: dart doc
+        env:
+          DOC_DIR: docs
+
+      - name: Archive docs
+        uses: actions/upload-artifact@v4 
+        with:
+          name: api-docs
+          path: doc/api/
+
+  publish:
+    needs: quality-gate
+    permissions:
+      id-token: write # Required for authentication using OIDC
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+      - run: dart pub get
+      - name: Publish
+        run: dart pub publish --force
