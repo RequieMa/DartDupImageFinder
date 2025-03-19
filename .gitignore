@@ -38,3 +38,4 @@ pubspec.lock
 ### Dart Patch ###
 # dotenv environment variables file
 .env
+test-results/*

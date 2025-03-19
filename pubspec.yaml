@@ -1,9 +1,8 @@
 name: dup_image_finder
-description: Detect duplicate images with various ways (e.g. hash, CNN)
+description: A cross-platform pure Dart library for detecting duplicate images using various methods (e.g. hashing, CNN), supporting multiple image formats and efficient similarity comparison
 version: 0.1.0
-# 详细描述 (显示在pub.dev详情页)  
 repository: https://github.com/RequieMa/dup_image_finder
-# homepage: https://your-package-site.com # 或复用repository URL
+license: BSD-3-Clause
 # documentation: https://pub.dev/documentation/your_package_name # 自动生成
 issue_tracker: https://github.com/RequieMa/dup_image_finder/issues
 
@@ -13,16 +12,16 @@ environment:
 # Add regular dependencies here.
 dependencies:
   image: ^4.5.3
-  collection: ^1.19.1
+  # collection: ^1.19.1
   path: ^1.8.0
   logging: ^1.3.0
-  dartcv4: ^1.1.3
+  bk_tree: ^0.1.1
+  image_hashing: ^0.1.0
+  # dartcv4: ^1.1.3
 
 dev_dependencies:
   lints: ^5.0.0
   test: ^1.24.0
-
-publish_to: none
 
 topics: # 最多5个标签
   - photos

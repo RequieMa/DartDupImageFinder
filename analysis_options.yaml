@@ -82,7 +82,9 @@ analyzer:
   errors:
     missing_return: error    # 函数缺少返回值报错
     unused_element: warning  # 未使用的元素警告
+    invalid_assignment: error
+    missing_required_param: error
+    todo: info
   exclude:
     - "build/**"          # 忽略构建目录
     - "lib/generated/**"  # 忽略代码生成文件
-

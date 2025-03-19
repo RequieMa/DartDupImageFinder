@@ -1,12 +1,14 @@
-import 'dart:io';
-import 'dart:core';
-import 'package:path/path.dart' as path;
+import "dart:io";
+import "dart:core";
+import "package:path/path.dart" as path;
 
 List<String> generateFiles(Directory imageDir, bool recursive) {
-  // var searchPattern = recursive ? '**/*' : '*';
-  List<FileSystemEntity> files = imageDir.listSync(recursive: recursive).where(
-    (entity) => entity is File && !path.basename(entity.path).startsWith('.')
-  ).toList();
+  // var searchPattern = recursive ? "**/*" : "*";
+  List<FileSystemEntity> files = imageDir
+      .listSync(recursive: recursive)
+      .where((entity) =>
+          entity is File && !path.basename(entity.path).startsWith("."))
+      .toList();
   return files.map((file) => file.path).toList();
 }
 

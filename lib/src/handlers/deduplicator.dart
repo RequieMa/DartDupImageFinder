@@ -1,6 +1,6 @@
-import 'dart:core';
-import '../utils/bk_tree.dart';
-import '../utils/logger.dart';
+import "dart:core";
+import "package:bk_tree/bk_tree.dart";
+import "../utils/logger.dart";
 
 final logger = returnLogger("DeDuplicator");
 
@@ -14,57 +14,57 @@ typedef QueryArgs = ({
 class HashEval {
   final Map<String, String> _test;
   final Map<String, String> _queries;
-  final Function(String, String) _distanceFunction;
+  final int Function(String, String) _distanceFunction;
   final bool _verbose;
   final int _threshold;
   final Map<String, List<dynamic>> _queryResultsMap = {};
-  final int _bitCount;
 
   HashEval({
     required Map<String, String> test,
     required Map<String, String> queries,
-    required Function(String, String) distanceFunction,
+    required int Function(String, String) distanceFunction,
     bool verbose = true,
     int threshold = 5,
-    String searchMethod = 'bktree',
+    String searchMethod = "bktree",
     int bitCount = 64,
-  }) : _test = test, _queries = queries, 
-  _distanceFunction = distanceFunction,
-  _verbose = verbose, _threshold = threshold,
-  _bitCount = bitCount {
-    searchMethod == 'bktree' ? _fetchNearestNeighborsBKtree() : _fetchNearestNeighborsBruteForce();
+  })  : _test = test,
+        _queries = queries,
+        _distanceFunction = distanceFunction,
+        _verbose = verbose,
+        _threshold = threshold {
+    searchMethod == "bktree"
+        ? _fetchNearestNeighborsBKtree()
+        : _fetchNearestNeighborsBruteForce();
   }
 
   void _fetchNearestNeighborsBKtree() {
     if (_verbose) {
-      logger.info('Start: Retrieving duplicates using BKTree algorithm');
+      logger.info("Start: Retrieving duplicates using BKTree algorithm");
     }
     final builtTree = BKTree(_test, _distanceFunction);
     _getQueryResults(builtTree);
     if (_verbose) {
-      logger.info('End: Retrieving duplicates using BKTree algorithm');
+      logger.info("End: Retrieving duplicates using BKTree algorithm");
     }
   }
 
-  void _fetchNearestNeighborsBruteForce() {
+  void _fetchNearestNeighborsBruteForce() {}
 
-  }
-
-  void _getQueryResults(_searchMethodObject) {
+  void _getQueryResults(BKTree searchMethodObject) {
     final queryKeys = _queries.keys.toList();
     final queryValues = _queries.values.toList();
     final List<QueryArgs> args = List<QueryArgs>.generate(
       _queries.length,
       (index) => (
-        queryKey: queryKeys[index], 
-        queryVal: queryValues[index], 
-        searchMethodObject: _searchMethodObject, 
+        queryKey: queryKeys[index],
+        queryVal: queryValues[index],
+        searchMethodObject: searchMethodObject,
         threshold: _threshold
       ),
     );
     // args.forEach((var arg)=> _searcher(arg));  // TODO: to paralellize it
     for (var i = 0; i < args.length; ++i) {
-      final result =  _searcher(args[i]);
+      final result = _searcher(args[i]);
       final target = queryKeys[i];
       result.removeWhere((map) => map.containsKey(target));
       result.sort((a, b) {
@@ -76,27 +76,27 @@ class HashEval {
     }
   }
 
-  List<dynamic> _searcher(dataTuple) {
+  List<dynamic> _searcher(QueryArgs dataTuple) {
     final (:queryKey, :queryVal, :searchMethodObject, :threshold) = dataTuple;
-    final res = searchMethodObject.search(query: queryVal, tol: threshold);
-    final filteredRes = res.where((element) => element.isNotEmpty && element[0] != queryKey).toList();
+    final res =
+        searchMethodObject.search(queryHash: queryVal, tolerance: threshold);
+    final filteredRes = res
+        .where((element) => element.isNotEmpty && element[0] != queryKey)
+        .toList();
     return filteredRes;
   }
 
   Map<String, List<dynamic>> retrieveResults({bool scores = false}) {
-  // void retrieveResults({bool scores = false}) {
-    if (scores)
+    // void retrieveResults({bool scores = false}) {
+    if (scores) {
       return _queryResultsMap;
-    else
+    } else {
       return Map<String, List<dynamic>>.fromEntries(
         _queryResultsMap.entries.map((entry) {
-          final val = entry.value
-              .map((map) => map.keys.single)
-              .toList();
+          final val = entry.value.map((map) => map.keys.single).toList();
           return MapEntry(entry.key, val);
-        })
+        }),
       );
+    }
   }
-
-
 }
