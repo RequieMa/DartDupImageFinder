@@ -18,6 +18,7 @@ class HashEval {
   final bool _verbose;
   final int _threshold;
   final Map<String, List<dynamic>> _queryResultsMap = {};
+  final int _bitCount;
 
   HashEval({
     required Map<String, String> test,
@@ -25,11 +26,13 @@ class HashEval {
     required Function(String, String) distanceFunction,
     bool verbose = true,
     int threshold = 5,
-    String searchMethod = 'bktree'
+    String searchMethod = 'bktree',
+    int bitCount = 64,
   }) : _test = test, _queries = queries, 
-  _distanceFunction = distanceFunction,
-  _verbose = verbose, _threshold = threshold {
+  _verbose = verbose, _threshold = threshold,
+  _bitCount = bitCount {
     searchMethod == 'bktree' ? _fetchNearestNeighborsBKtree() : _fetchNearestNeighborsBruteForce();
+    _distanceFunction = distanceFunction(),
   }
 
   void _fetchNearestNeighborsBKtree() {

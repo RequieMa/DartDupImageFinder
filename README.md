@@ -119,9 +119,7 @@ Full text at [LICENSE](LICENSE)
 
 ---
 ## 🚧 Maintenance Status
-Basic functionalities are done. 
-
-Stable Version is under development. 
+Basic functionalities are under development. 
 
 Please report issues via [GitHub Issues](https://github.com/RequieMa/dup_image_finder/issues)
 
