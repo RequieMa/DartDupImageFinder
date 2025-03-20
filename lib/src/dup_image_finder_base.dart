@@ -95,11 +95,11 @@ class DupImageFinder {
     }
 
     final int Function(String a, String b) hammingWrapper;
-    if (_hasher is DHash) {
-      hammingWrapper = (a, b) => hammingDistance(a, b, size: 128);
-    } else {
-      hammingWrapper = (a, b) => hammingDistance(a, b, size: 64);
-    }
+    // if (_hasher is DHash) {
+    //   hammingWrapper = (a, b) => hammingDistance(a, b, size: 128);
+    // } else {
+    hammingWrapper = (a, b) => hammingDistance(a, b, size: 64);
+    // }
 
     final resultsSet = HashEval(
       test: encodingMap,
