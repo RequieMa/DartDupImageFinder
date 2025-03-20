@@ -1,10 +1,10 @@
-import "dart:io";
 import "dart:core";
+import "dart:io";
 import "package:path/path.dart" as path;
 
-List<String> generateFiles(Directory imageDir, bool recursive) {
+List<String> generateFiles(Directory imageDir, {bool recursive = false,} ) {
   // var searchPattern = recursive ? "**/*" : "*";
-  List<FileSystemEntity> files = imageDir
+  final files = imageDir
       .listSync(recursive: recursive)
       .where((entity) =>
           entity is File && !path.basename(entity.path).startsWith("."))

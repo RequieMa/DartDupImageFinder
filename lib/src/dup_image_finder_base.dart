@@ -6,12 +6,26 @@ import "utils/logger.dart";
 
 final loggerHash = returnLogger("DupImageFinder");
 
+/// Image deduplication system using perceptual hashing algorithms
+/// 
+/// Example usage:
+/// ```dart
+/// final finder = DupImageFinder(
+///   useML: false,
+///   hasher: DHash(),
+/// );
+/// ```
 class DupImageFinder {
   final Hashing _hasher;
   // final Kernel _kernel; // for CNN methods
   final bool _useML;
   final bool _verbose;
 
+  /// Creates an image deduplication processor
+  ///
+  /// [useML]: Enables machine learning approach (unsupported yet)
+  /// [hasher]: Hashing algorithm implementation for feature extraction
+  /// [verbose]: Enables detailed logging of processing pipeline
   DupImageFinder({
     required bool useML,
     required Hashing hasher,
@@ -35,14 +49,21 @@ class DupImageFinder {
     // }
   }
 
-  // Future<Map<String, String>> encodeImages(String imageDir, {bool recursive = false, int workers = 4}) async {
+  /// Generates perceptual hashes for images in specified directory
+  ///
+  /// [imageDir]: Target directory containing images to process
+  /// [recursive]: Enables recursive processing of subdirectories
+  /// 
+  /// Returns map of file paths to corresponding hash strings
+  /// 
+  /// Throws [ArgumentError] if directory path is invalid
   Map<String, String> encodeImages(String imageDir, {bool recursive = false}) {
     var directory = Directory(imageDir);
     if (!directory.existsSync()) {
       throw ArgumentError("Please provide a valid directory path!");
     }
 
-    List<String> filePaths = generateFiles(directory, recursive);
+    final filePaths = generateFiles(directory, recursive: recursive);
 
     if (_verbose) {
       loggerHash.info("Start: Calculating hashes...");
@@ -50,10 +71,10 @@ class DupImageFinder {
 
     // TODO: Make this parallelized
     // List<String?> hashes = await parallelise(filePaths, workers);
-    final Map<String, String> hashMap = {};
+    final hashMap = <String, String>{};
     for (var file in filePaths) {
-      var _encode = _hasher.encodeImage(file);
-      if (_encode != null) hashMap[file] = _encode;
+      var encode = _hasher.encodeImage(file);
+      if (encode != null) hashMap[file] = encode;
     }
 
     if (_verbose) {
@@ -62,20 +83,27 @@ class DupImageFinder {
     return hashMap;
   }
 
+  /// Identifies duplicate images based on hash similarity
+  ///
+  /// [encodingMap]: Precomputed hash map from [encodeImages]
+  /// [maxDistanceThreshold]: Maximum allowed Hamming distance for duplicates
+  /// [scores]: Enables similarity scores in output results
+  /// [searchMethod]: Search algorithm selection (bktree/brute_force)
+  /// 
+  /// Returns map of original files to their duplicate matches
   Map<String, dynamic> findDuplicates(
     Map<String, String> encodingMap, {
     int maxDistanceThreshold = 10,
     bool scores = false,
     // String? outfile, // TODO: get output json later
-    // String searchMethod = "brute_force",
     String searchMethod = "bktree",
   }) {
     if (_verbose) {
       loggerHash
           .info("Start: Evaluating hamming distances for getting duplicates");
     }
-    var hammingWrapper;
 
+    final int Function(String a, String b) hammingWrapper;
     if (_hasher is DHash) {
       hammingWrapper = (a, b) => hammingDistance(a, b, size: 128);
     } else {
@@ -92,10 +120,10 @@ class DupImageFinder {
     final results = resultsSet.retrieveResults(scores: scores);
 
     if (_verbose) {
-      loggerHash
-          .info("End: Evaluating hamming distances for getting duplicates");
+      loggerHash.info(
+        "End: Evaluating hamming distances for getting duplicates",
+      );
     }
-
     // if (outfile != null) {
     //   _saveResultsToFile(results, outfile);
     // }
