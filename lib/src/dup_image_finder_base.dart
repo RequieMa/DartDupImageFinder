@@ -17,9 +17,9 @@ final loggerHash = returnLogger("DupImageFinder");
 /// );
 /// ```
 class DupImageFinder {
-  final Hashing _hasher;
+  final bool _useML; // for ML methods, currently unsupported
+  final Hashing? _hasher;
   // final Kernel _kernel; // for CNN methods
-  final bool _useML;
   final bool _verbose;
 
   /// Creates an image deduplication processor
@@ -29,26 +29,12 @@ class DupImageFinder {
   /// [verbose]: Enables detailed logging of processing pipeline
   DupImageFinder({
     required bool useML,
-    required Hashing hasher,
+    Hashing? hasher,
     // Kernel kernel,
     bool verbose = true,
   })  : _useML = useML,
-        _verbose = verbose,
-        _hasher = hasher {
-    // if (_useML) {
-    //   try {
-    //     // _kernel = kernel!;
-    //   } on Exception catch (e) {
-    //     print("Error: $e"); // Display error message
-    //   }
-    // } else {
-    //   try {
-    //     _hasher = hasher!;
-    //   } on Exception catch (e) {
-    //     print("Error: $e"); // Display error message
-    //   }
-    // }
-  }
+        _hasher = useML ? null : hasher!,
+        _verbose = verbose;
 
   /// Generates perceptual hashes for images in specified directory
   ///
@@ -74,8 +60,12 @@ class DupImageFinder {
     // List<String?> hashes = await parallelise(filePaths, workers);
     final hashMap = <String, String>{};
     for (var file in filePaths) {
-      var encode = _hasher.encodeImage(file);
-      if (encode != null) hashMap[file] = encode;
+      final String? encode;
+      if (_useML) {
+      } else {
+        encode = _hasher!.encodeImage(file);
+        if (encode != null) hashMap[file] = encode;
+      }
     }
 
     if (_verbose) {
