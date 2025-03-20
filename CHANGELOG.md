@@ -1,3 +1,8 @@
+## 0.1.1
+
+* Infrastructure
+  - Configured GitHub Actions workflow
+
 ## 0.1.0
 
 * Initial implementation of `DupImageFinder` API for image duplicate detection:

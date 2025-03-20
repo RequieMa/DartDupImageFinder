@@ -4,10 +4,11 @@ import "handlers/deduplicator.dart";
 import "utils/general_utils.dart";
 import "utils/logger.dart";
 
+/// Logger instance for DupImageFinder
 final loggerHash = returnLogger("DupImageFinder");
 
 /// Image deduplication system using perceptual hashing algorithms
-/// 
+///
 /// Example usage:
 /// ```dart
 /// final finder = DupImageFinder(
@@ -53,9 +54,9 @@ class DupImageFinder {
   ///
   /// [imageDir]: Target directory containing images to process
   /// [recursive]: Enables recursive processing of subdirectories
-  /// 
+  ///
   /// Returns map of file paths to corresponding hash strings
-  /// 
+  ///
   /// Throws [ArgumentError] if directory path is invalid
   Map<String, String> encodeImages(String imageDir, {bool recursive = false}) {
     var directory = Directory(imageDir);
@@ -89,7 +90,7 @@ class DupImageFinder {
   /// [maxDistanceThreshold]: Maximum allowed Hamming distance for duplicates
   /// [scores]: Enables similarity scores in output results
   /// [searchMethod]: Search algorithm selection (bktree/brute_force)
-  /// 
+  ///
   /// Returns map of original files to their duplicate matches
   Map<String, dynamic> findDuplicates(
     Map<String, String> encodingMap, {
@@ -111,12 +112,13 @@ class DupImageFinder {
     }
 
     final resultsSet = HashEval(
-        test: encodingMap,
-        queries: encodingMap,
-        distanceFunction: hammingWrapper,
-        verbose: _verbose,
-        threshold: maxDistanceThreshold,
-        searchMethod: searchMethod);
+      test: encodingMap,
+      queries: encodingMap,
+      distanceFunction: hammingWrapper,
+      threshold: maxDistanceThreshold,
+      searchMethod: searchMethod,
+      verbose: _verbose,
+    );
     final results = resultsSet.retrieveResults(scores: scores);
 
     if (_verbose) {
