@@ -28,7 +28,7 @@ flutter pub add dup_image_finder
 Add to `pubspec.yaml`:
 ```yaml
 dependencies:
-  dup_image_finder: ^0.1.1
+  dup_image_finder: ^0.1.2
 ```
 Then run:
 ```bash
@@ -40,7 +40,7 @@ dart pub get
 import 'package:dup_image_finder/dup_image_finder.dart';
 
 final dupImageFinder = DupImageFinder(useML: false, hasher: AHash());
-final hashMap = dupImageFinder.encodeImages("FolderName");
+final hashMap = dupImageFinder.encodeImagesFromDir("FolderName");
 final result = dupImageFinder.findDuplicates(hashMap);
 ```
 

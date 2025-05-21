@@ -1,6 +1,6 @@
 name: dup_image_finder
 description: A cross-platform pure Dart library for detecting duplicate images using various methods (e.g. hashing, CNN), supporting multiple image formats and efficient similarity comparison
-version: 0.1.1
+version: 0.1.2
 repository: https://github.com/RequieMa/dup_image_finder
 license: BSD-3-Clause
 documentation: https://pub.dev/documentation/dup_image_finder

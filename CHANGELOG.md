@@ -1,3 +1,8 @@
+## 0.1.2
+
+* Pipeline
+  - Change from `encodeImages` to `encodeImagesFromDir` so that it supports `List<String>` of path list
+
 ## 0.1.1
 
 * Infrastructure
