@@ -3,7 +3,7 @@ import "package:image_hashing/image_hashing.dart";
 
 void main() async {
   final dupImageFinder = DupImageFinder(useML: false, hasher: AHash());
-  final hashMap = dupImageFinder.encodeImages("example/example_img/");
+  final hashMap = dupImageFinder.encodeImagesFromDir("example/example_img/");
   print(hashMap);
   final result = dupImageFinder.findDuplicates(hashMap);
   print(result);

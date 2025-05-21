@@ -36,22 +36,14 @@ class DupImageFinder {
         _hasher = useML ? null : hasher!,
         _verbose = verbose;
 
-  /// Generates perceptual hashes for images in specified directory
+  /// Generates perceptual hashes for a list of images
   ///
-  /// [imageDir]: Target directory containing images to process
-  /// [recursive]: Enables recursive processing of subdirectories
+  /// [filePaths]: List of file paths
   ///
   /// Returns map of file paths to corresponding hash strings
   ///
   /// Throws [ArgumentError] if directory path is invalid
-  Map<String, String> encodeImages(String imageDir, {bool recursive = false}) {
-    var directory = Directory(imageDir);
-    if (!directory.existsSync()) {
-      throw ArgumentError("Please provide a valid directory path!");
-    }
-
-    final filePaths = generateFiles(directory, recursive: recursive);
-
+  Map<String, String> encodeImages(List<String> filePaths) {
     if (_verbose) {
       loggerHash.info("Start: Calculating hashes...");
     }
@@ -64,7 +56,7 @@ class DupImageFinder {
       if (_useML) {
       } else {
         encode = _hasher!.encodeImage(file);
-        if (encode != null) hashMap[file] = encode;
+        if (encode.isNotEmpty) hashMap[file] = encode;
       }
     }
 
@@ -72,6 +64,26 @@ class DupImageFinder {
       loggerHash.info("End: Calculating hashes!");
     }
     return hashMap;
+  }
+
+  /// Generates perceptual hashes for images in specified directory
+  ///
+  /// [imageDir]: Target directory containing images to process
+  /// [recursive]: Enables recursive processing of subdirectories
+  ///
+  /// Returns map of file paths to corresponding hash strings
+  ///
+  /// Throws [ArgumentError] if directory path is invalid
+  Map<String, String> encodeImagesFromDir(
+    String imageDir, {bool recursive = false,}
+  ) {
+    var directory = Directory(imageDir);
+    if (!directory.existsSync()) {
+      throw ArgumentError("Please provide a valid directory path!");
+    }
+
+    final filePaths = generateFiles(directory, recursive: recursive);
+    return encodeImages(filePaths);
   }
 
   /// Identifies duplicate images based on hash similarity
