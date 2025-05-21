@@ -56,7 +56,7 @@ class DupImageFinder {
       if (_useML) {
       } else {
         encode = _hasher!.encodeImage(file);
-        if (encode.isNotEmpty) hashMap[file] = encode;
+        if (encode != null) hashMap[file] = encode;
       }
     }
 

@@ -16,7 +16,7 @@ dependencies:
   path: ^1.8.0
   logging: ^1.3.0
   bk_tree: ^0.1.1
-  image_hashing: ^0.1.0
+  image_hashing: ^0.1.1
   # dartcv4: ^1.1.3
 
 dev_dependencies:
