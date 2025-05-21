@@ -75,8 +75,9 @@ class DupImageFinder {
   ///
   /// Throws [ArgumentError] if directory path is invalid
   Map<String, String> encodeImagesFromDir(
-    String imageDir, {bool recursive = false,}
-  ) {
+    String imageDir, {
+    bool recursive = false,
+  }) {
     var directory = Directory(imageDir);
     if (!directory.existsSync()) {
       throw ArgumentError("Please provide a valid directory path!");
